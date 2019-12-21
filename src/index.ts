@@ -1,2 +1,4 @@
-import "./ts/main"
-import "./scss/base.scss"
+import "./scss/base.scss";
+import { main } from "./ts/main";
+
+main();
