@@ -1,13 +1,4 @@
-import {
-  Engine,
-  Render,
-  Runner,
-  Constraint,
-  MouseConstraint,
-  Mouse,
-  World,
-  Bodies
-} from "matter-js";
+import { Engine, Render, Runner, Events, World, Bodies, Body } from "matter-js";
 import { planet } from "./assets";
 
 export const main = () => {
@@ -17,6 +8,7 @@ export const main = () => {
 
   const width = window.innerWidth;
   const height = window.innerHeight;
+  const zoom = 1;
 
   // create renderer
   const renderer = Render.create({
@@ -26,6 +18,10 @@ export const main = () => {
       width,
       height,
       wireframes: false
+    },
+    bounds: {
+      min: { x: 0, y: 0 },
+      max: { x: width * zoom, y: height * zoom }
     }
   });
 
@@ -39,19 +35,46 @@ export const main = () => {
   engine.world.gravity.y = 0;
 
   const planetRadius = 1000;
-
-  World.add(world, [
-    Bodies.circle(width / 2, height / 2 + planetRadius, planetRadius, {
+  // planet
+  const planetBody = Bodies.circle(
+    width / 2,
+    height / 2 + planetRadius,
+    planetRadius,
+    {
       render: {
-        sprite: planet(planetRadius * 2)
+        sprite: planet(planetRadius * 2 + 495)
       },
-      mass: 1000
-    })
-  ]);
+      mass: Infinity,
+      label: "planet",
+      restitution: 0.7
+    }
+  );
 
-  // fit the render viewport to the scene
-  renderer.bounds = {
-    min: { x: 0, y: 0 },
-    max: { x: width, y: height }
-  };
+  World.add(world, planetBody);
+
+  const ship = Bodies.rectangle(200, 200, 70, 10, {
+    render: {
+      fillStyle: "white"
+    }
+  });
+
+  // test box
+  World.add(world, ship);
+
+  Events.on(engine, "afterUpdate", () => {
+    const body2 = planetBody;
+
+    for (const body1 of world.bodies) {
+      if (body1 !== body2) {
+        const Dx = body2.position.x - body1.position.x;
+        const Dy = body2.position.y - body1.position.y;
+        const force = 0.0002;
+        const angle = Math.atan2(Dy, Dx);
+        body1.force.x += force * Math.cos(angle);
+        body1.force.y += force * Math.sin(angle);
+      }
+    }
+
+    Body.setAngularVelocity(planetBody, 0.002);
+  });
 };
