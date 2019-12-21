@@ -46,7 +46,7 @@ export const main = () => {
       },
       mass: Infinity,
       label: "planet",
-      restitution: 0.7
+      restitution: 0.2
     }
   );
 
