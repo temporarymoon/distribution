@@ -1,0 +1,16 @@
+{
+  "0 debug pnpm:scope": {
+    "selected": 1
+  },
+  "1 error pnpm": {
+    "message": {
+      "code": "ERR_PNPM_NO_SCRIPT"
+    },
+    "err": {
+      "name": "Error",
+      "message": "Missing script: dev",
+      "code": "ERR_PNPM_NO_SCRIPT",
+      "stack": "Error: Missing script: dev\n    at Object.handler (/home/adrielus/.nvm/versions/node/v12.11.0/pnpm-global/3/node_modules/.pnpm/registry.npmjs.org/pnpm/4.4.0/node_modules/pnpm/lib/node_modules/@pnpm/plugin-commands-script-runners/lib/run.js:53:15)"
+    }
+  }
+}
