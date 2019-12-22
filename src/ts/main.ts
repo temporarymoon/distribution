@@ -55,7 +55,7 @@ const completedLayout = (layout: Layout) =>
 
 const generateLayout = (probability = 3): Layout => {
   // generate new layout
-  const [w, h] = [random(10), random(10)];
+  const [w, h] = [3 + random(6), 2 + random(7)];
   const result = {
     width: w,
     height: h,
@@ -192,6 +192,7 @@ export const main = async () => {
         element.className += " visible";
       }
 
+      mouseDown = false;
       running = false;
       canvas.className = "full lost";
       document.getElementById("end-score").textContent = String(score);
@@ -221,9 +222,11 @@ export const main = async () => {
         button.onclick = null;
       };
     } else if (won) {
-      score += base.cells.reduce((a, b) => a + b, 0);
+      const points = base.cells.reduce((a, b) => a + b, 0);
+      score += points;
       mouseDown = false;
       base = generateLayout();
+      time += points * 3.1;
 
       // transition
       const original = canvas.className;
