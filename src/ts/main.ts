@@ -1,6 +1,3 @@
-import { Engine, Render, Runner, Events, World, Bodies, Body } from "matter-js";
-import { planet, house } from "./assets";
-
 enum CellType {
   frozen,
   full,
@@ -42,6 +39,36 @@ const [present, presentLoaded] = loadImage(
 
 const thingsToLoad = [presentLoaded, snowLoaded];
 
+const random = (max: number) => Math.floor(Math.random() * max);
+
+const completedLayout = (layout: Layout) =>
+  layout.cells.reduce((prev, curr) => prev && curr !== CellType.empty, true);
+
+const generateLayout = (probability = 3): Layout => {
+  // generate new layout
+  const [w, h] = [random(10), random(10)];
+  const result = {
+    width: w,
+    height: h,
+    cells: Array(w * h)
+      .fill(1)
+      .map(() => {
+        const v = random(10);
+
+        return v <= probability ? CellType.empty : CellType.frozen;
+      })
+  };
+
+  if (completedLayout(result)) {
+    return generateLayout(probability + 1);
+  }
+
+  return result;
+};
+
+const wait = (amount: number) =>
+  new Promise(resolve => setTimeout(resolve, amount));
+
 const drawTile = (
   _type: CellType,
   context: CanvasRenderingContext2D,
@@ -50,8 +77,6 @@ const drawTile = (
   width: number,
   height: number
 ) => {
-  // console.log({ _type });
-
   if (_type === CellType.frozen) {
     context.drawImage(snow, 32, 0, 32, 32, x, y, width, height);
   } else if (_type === CellType.empty) {
@@ -67,9 +92,9 @@ const getTilePosition = (index: number, width: number) => {
   const y = Math.floor(index / width);
   return [x, y];
 };
-
 export const main = async () => {
   let width: number, height: number;
+  let running = true;
 
   const canvas = document.getElementById("canvas") as HTMLCanvasElement;
   const context = canvas.getContext("2d");
@@ -89,7 +114,7 @@ export const main = async () => {
     context.fillRect(0, 0, width, height);
 
     const minD = Math.min(width, height);
-    const side = minD / (Math.min(layout.height, layout.width) + 2);
+    const side = minD / (Math.max(layout.height, layout.width) + 2);
 
     for (let x = 0; x < width / side; x++) {
       for (let y = 0; y < height / side; y++) {
@@ -131,9 +156,29 @@ export const main = async () => {
       CellType.frozen
     ]
   };
+  const resolveState = async () => {
+    const won = completedLayout(base);
 
-  const loop = () => {
-    render(base);
+    if (won) {
+      mouseDown = false;
+      base = generateLayout();
+
+      // transition
+      const original = canvas.className;
+      canvas.className = "full won";
+      running = false;
+      await wait(500);
+      canvas.className = original;
+      await wait(500);
+      running = true;
+    }
+  };
+
+  const loop = async () => {
+    if (running) {
+      render(base);
+      await resolveState();
+    }
 
     requestAnimationFrame(loop);
   };
@@ -146,7 +191,7 @@ export const main = async () => {
   const doTurn = (e: MouseEvent) => {
     const layout = base;
     const minD = Math.min(width, height);
-    const side = minD / (Math.min(layout.height, layout.width) + 2);
+    const side = minD / (Math.max(layout.height, layout.width) + 2);
 
     const tilesFitting = [width / side, height / side].map(Math.floor);
 

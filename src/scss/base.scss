@@ -11,3 +11,11 @@ html {
   height: 100%;
   width: 100%;
 }
+
+#canvas {
+  transition: filter 500ms ease-in-out;
+}
+
+.won {
+  filter: hue-rotate(180deg) brightness(5) contrast(150%);
+}
