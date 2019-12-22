@@ -16,6 +16,40 @@ html {
   transition: filter 500ms ease-in-out;
 }
 
-.won {
+#canvas.won {
   filter: hue-rotate(180deg) brightness(5) contrast(150%);
+}
+
+#canvas.lost {
+  filter: sepia(60%) blur(5px) contrast(60%) brightness(0.7);
+}
+
+#end {
+  visibility: hidden;
+  filter: visibility 1s ease-in-out;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
+#end.visible {
+  visibility: visible;
+}
+
+#end-content {
+  background: #725252;
+  min-width: 60vw;
+  min-height: 60vh;
+  color: white;
+}
+
+#end-title {
+  font-size: 6vh;
+  font-family: "Courier New", Courier, monospace;
 }

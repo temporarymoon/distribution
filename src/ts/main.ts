@@ -12,6 +12,15 @@ type Layout = {
   cells: Cell[];
 };
 
+const withContextSave = (
+  context: CanvasRenderingContext2D,
+  callback: () => void
+) => {
+  context.save();
+  callback();
+  context.restore();
+};
+
 const loadImage = (w: number, h: number, url: string) => {
   const img = new Image(w, h);
 
@@ -95,9 +104,21 @@ const getTilePosition = (index: number, width: number) => {
 export const main = async () => {
   let width: number, height: number;
   let running = true;
+  let time = 10;
+  let maxTime = time;
+
+  const heal = (amount: number) => {
+    time += amount;
+    if (time > maxTime) {
+      maxTime = time;
+    } else if (time < 5) {
+      time = 5;
+    }
+  };
 
   const canvas = document.getElementById("canvas") as HTMLCanvasElement;
   const context = canvas.getContext("2d");
+  const endscreen = document.getElementById("end");
 
   const resize = () => {
     width = window.innerWidth;
@@ -109,7 +130,7 @@ export const main = async () => {
 
   await Promise.all(thingsToLoad);
 
-  const render = (layout: Layout) => {
+  const renderLayout = (layout: Layout) => {
     context.fillStyle = "#333333";
     context.fillRect(0, 0, width, height);
 
@@ -124,21 +145,22 @@ export const main = async () => {
 
     const tilesFitting = [width / side, height / side].map(Math.floor);
 
-    context.save();
-    context.translate(
-      Math.round((tilesFitting[0] - layout.width) / 2) * side,
-      Math.round((tilesFitting[1] - layout.height) / 2) * side
-    );
+    withContextSave(context, () => {
+      context.translate(
+        Math.round((tilesFitting[0] - layout.width) / 2) * side,
+        Math.round((tilesFitting[1] - layout.height) / 2) * side
+      );
 
-    for (let index = 0; index < layout.cells.length; index++) {
-      const cell = layout.cells[index];
+      for (let index = 0; index < layout.cells.length; index++) {
+        const cell = layout.cells[index];
 
-      const [x, y] = getTilePosition(index, layout.width);
+        const [x, y] = getTilePosition(index, layout.width);
 
-      drawTile(cell, context, x * side, y * side, side, side);
-    }
+        drawTile(cell, context, x * side, y * side, side, side);
+      }
 
-    context.restore();
+      context.restore();
+    });
   };
 
   let base = {
@@ -156,29 +178,57 @@ export const main = async () => {
       CellType.frozen
     ]
   };
-  const resolveState = async () => {
-    const won = completedLayout(base);
 
-    if (won) {
+  const resolveState = async () => {
+    const lost = time <= 5;
+    const won = completedLayout(base) && !lost;
+
+    if (lost) {
+      endscreen.className += " visible";
+      running = false;
+      canvas.className = "full lost";
+    } else if (won) {
       mouseDown = false;
       base = generateLayout();
 
       // transition
       const original = canvas.className;
-      canvas.className = "full won";
+      canvas.className += " won";
       running = false;
       await wait(500);
       canvas.className = original;
       await wait(500);
       running = true;
+      last = performance.now();
     }
   };
 
+  const renderTime = () => {
+    withContextSave(context, () => {
+      const barLength = (0.8 * width * time) / maxTime;
+      context.translate(0.1 * width, 0);
+      context.fillStyle = "red";
+      context.fillRect(0, 0, barLength, 40);
+    });
+  };
+
+  let last = performance.now();
+  let timeCoefficient = 0.01;
+
   const loop = async () => {
+    const now = performance.now();
+    const delta = now - last;
+
+    heal(-delta * timeCoefficient);
+
     if (running) {
-      render(base);
+      renderLayout(base);
+      renderTime();
+
       await resolveState();
     }
+
+    last = now;
 
     requestAnimationFrame(loop);
   };
@@ -189,6 +239,10 @@ export const main = async () => {
   window.onresize = resize;
 
   const doTurn = (e: MouseEvent) => {
+    if (!running) {
+      return;
+    }
+
     const layout = base;
     const minD = Math.min(width, height);
     const side = minD / (Math.max(layout.height, layout.width) + 2);
