@@ -10,3 +10,4 @@ const scaledImage = (width: number, height: number, path: string) => (
 const scaledPlanet = scaledImage(800, 800, require("../../assets/planet.png"));
 
 export const planet = (radius: number) => scaledPlanet(radius, radius);
+export const house = scaledImage(204, 310, require("../../assets/house.png"));
