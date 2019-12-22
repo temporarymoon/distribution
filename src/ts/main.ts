@@ -105,7 +105,8 @@ export const main = async () => {
   let score = 0;
   let width: number, height: number;
   let running = true;
-  let time = 10;
+  const initialTime = 100;
+  let time = initialTime;
   let maxTime = time;
 
   const heal = (amount: number) => {
@@ -194,7 +195,7 @@ export const main = async () => {
       running = false;
       canvas.className = "full lost";
       document.getElementById("end-score").textContent = String(score);
-      const button = document.getElementById("#play-again");
+      const button = document.getElementById("play-again");
 
       button.onclick = async () => {
         canvas.className = "full";
@@ -203,8 +204,19 @@ export const main = async () => {
           elements[i].className += originals[i];
         }
 
-        await wait(500);
+        base = generateLayout();
+
+        for (let i = 0; i < 100; i++) {
+          time += (initialTime - time) / 10;
+          maxTime = time;
+          await wait(1);
+        }
+
         running = true;
+
+        time = initialTime;
+        maxTime = time;
+        score = 0;
 
         button.onclick = null;
       };
@@ -245,10 +257,11 @@ export const main = async () => {
 
     if (running) {
       renderLayout(base);
-      renderTime();
 
       await resolveState();
     }
+
+    renderTime();
 
     last = now;
 
