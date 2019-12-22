@@ -21,6 +21,17 @@ const withContextSave = (
   context.restore();
 };
 
+const loadAudio = (path: string) => {
+  const audio = new Audio(path);
+
+  return [
+    audio,
+    new Promise(resolve => {
+      audio.onload = resolve;
+    })
+  ] as const;
+};
+
 const loadImage = (w: number, h: number, url: string) => {
   const img = new Image(w, h);
 
@@ -45,6 +56,8 @@ const [present, presentLoaded] = loadImage(
   16,
   require("../../assets/present.png")
 );
+
+const [music, _] = loadAudio(require("../../assets/audio.mp3"));
 
 const thingsToLoad = [presentLoaded, snowLoaded];
 
@@ -102,12 +115,16 @@ const getTilePosition = (index: number, width: number) => {
   return [x, y];
 };
 export const main = async () => {
+  await Promise.all(thingsToLoad);
+
   let score = 0;
   let width: number, height: number;
   let running = true;
-  const initialTime = 100;
+  const initialTime = 75;
   let time = initialTime;
   let maxTime = time;
+
+  let started = false;
 
   const heal = (amount: number) => {
     time += amount;
@@ -129,7 +146,7 @@ export const main = async () => {
     canvas.height = height;
   };
 
-  await Promise.all(thingsToLoad);
+  music.loop = true;
 
   const renderLayout = (layout: Layout) => {
     context.fillStyle = "#333333";
@@ -268,6 +285,13 @@ export const main = async () => {
 
     last = now;
 
+    try {
+      if (!started) {
+        await music.play();
+
+        started = true;
+      }
+    } catch {}
     requestAnimationFrame(loop);
   };
 
