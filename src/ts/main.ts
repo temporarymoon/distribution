@@ -102,6 +102,7 @@ const getTilePosition = (index: number, width: number) => {
   return [x, y];
 };
 export const main = async () => {
+  let score = 0;
   let width: number, height: number;
   let running = true;
   let time = 10;
@@ -118,7 +119,6 @@ export const main = async () => {
 
   const canvas = document.getElementById("canvas") as HTMLCanvasElement;
   const context = canvas.getContext("2d");
-  const endscreen = document.getElementById("end");
 
   const resize = () => {
     width = window.innerWidth;
@@ -184,10 +184,32 @@ export const main = async () => {
     const won = completedLayout(base) && !lost;
 
     if (lost) {
-      endscreen.className += " visible";
+      const originals: string[] = [];
+
+      for (const element of Array.from(document.querySelectorAll(".end"))) {
+        originals.push(element.className);
+        element.className += " visible";
+      }
+
       running = false;
       canvas.className = "full lost";
+      document.getElementById("end-score").textContent = String(score);
+      const button = document.getElementById("#play-again");
+
+      button.onclick = async () => {
+        canvas.className = "full";
+        const elements = Array.from(document.querySelectorAll(".end"));
+        for (let i = 0; i < elements.length; i++) {
+          elements[i].className += originals[i];
+        }
+
+        await wait(500);
+        running = true;
+
+        button.onclick = null;
+      };
     } else if (won) {
+      score += base.cells.reduce((a, b) => a + b, 0);
       mouseDown = false;
       base = generateLayout();
 
@@ -206,7 +228,7 @@ export const main = async () => {
   const renderTime = () => {
     withContextSave(context, () => {
       const barLength = (0.8 * width * time) / maxTime;
-      context.translate(0.1 * width, 0);
+      context.translate(0.1 * width, 20);
       context.fillStyle = "red";
       context.fillRect(0, 0, barLength, 40);
     });

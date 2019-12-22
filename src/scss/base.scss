@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css?family=Changa&display=swap");
+
 body,
 html {
   padding: 0;
@@ -24,9 +26,15 @@ html {
   filter: sepia(60%) blur(5px) contrast(60%) brightness(0.7);
 }
 
-#end {
+.end {
+  opacity: 0;
   visibility: hidden;
-  filter: visibility 1s ease-in-out;
+  filter: visibility 1s, opacity 1s;
+}
+
+#end {
+  filter: sepia(60%) contrast(60%);
+
   position: absolute;
   top: 0;
   left: 0;
@@ -38,18 +46,51 @@ html {
   align-items: center;
 }
 
-#end.visible {
+.end.visible {
+  opacity: 1;
   visibility: visible;
 }
 
 #end-content {
+  min-width: 50vw;
   background: #725252;
-  min-width: 60vw;
-  min-height: 60vh;
   color: white;
+  padding: 1rem;
+  box-sizing: border-box;
 }
 
 #end-title {
+  font-family: "Changa", sans-serif;
   font-size: 6vh;
-  font-family: "Courier New", Courier, monospace;
+  background: inherit;
+  margin: 1rem;
+  padding: 1rem;
+  border-radius: 0.4rem;
+  filter: brightness(0.8);
+}
+
+#end-footer {
+  display: flex;
+  justify-content: space-between;
+  background: inherit;
+}
+
+#end-score-container {
+  font-size: 1.9rem;
+  margin: 1rem;
+  padding: 1rem;
+}
+
+button#play-again {
+  color: white;
+  border: 1px solid white;
+  padding: 1rem;
+  margin: 1rem;
+  font-size: 1.7rem;
+  background: inherit;
+  transition: filter 0.5s ease-out;
+
+  &:hover {
+    filter: brightness(1.5);
+  }
 }
